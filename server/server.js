@@ -2,7 +2,7 @@ const http = require('http');
 const express = require('express');
 const app = express();
 
-//setting up our folder to serve static files like our CSS style
+//setting up our folder to serve static files like our CSS
 app.use(express.static(__dirname));
 
 //set the view directory '../client/views
