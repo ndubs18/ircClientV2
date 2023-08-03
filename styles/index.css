@@ -18,9 +18,9 @@ h1, h2 {
     text-align: center;
 }
 form {
-    width: 15rem;
+    width: 30rem;
     margin: 0 auto;
-    padding: 0rem 10rem 2rem;
+    padding: 0rem 1rem 2rem;
     text-align: center;
     display: flex;
     flex-direction: column;
@@ -40,4 +40,15 @@ input::placeholder {
 
 label {
     display: block;
+}
+
+#accountLinks {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    
+}
+a {
+    width: 10rem;
+    padding: 0 .5rem;
 }
