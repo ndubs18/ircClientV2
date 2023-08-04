@@ -9,7 +9,6 @@ router.post("/signup", async (req, res) => {
   try {
     const { email, password } = req.body;
     // 1. check if user already exists
-    console.log('email: ' + email + 'password: ' + password);
     const user = await User.findOne({ email: email });
 
     // if user exists already, return error
@@ -40,4 +39,47 @@ router.post("/signup", async (req, res) => {
     });
   }
   });
+
+ // Sign In request
+router.post("/login", async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    // 1. check if user exists
+    const user = await User.findOne({ email: email });
+
+    // if user doesn't exist, return error
+    if (!user)
+      return res.status(500).json({
+        message: "User doesn't exist! 😢",
+        type: "error",
+      });
+    // 2. if user exists, check if password is correct
+    const isMatch = await compare(password, user.password);
+
+    // if password is incorrect, return error
+    if (!isMatch)
+      return res.status(500).json({
+        message: "Password is incorrect! ⚠️",
+        type: "error",
+      });
+
+    // 3. if password is correct, create the tokens
+    const accessToken = createAccessToken(user._id);
+    const refreshToken = createRefreshToken(user._id);
+
+    // 4. put refresh token in database
+    user.refreshtoken = refreshToken;
+    await user.save();
+
+    // 5. send the response
+    sendRefreshToken(res, refreshToken);
+    sendAccessToken(req, res, accessToken);
+  } catch (error) {
+    res.status(500).json({
+      type: "error",
+      message: "Error signing in!",
+      error,
+    });
+  }
+});
   module.exports = router;

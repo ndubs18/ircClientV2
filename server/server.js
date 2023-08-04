@@ -44,7 +44,7 @@ mongoose
     useUnifiedTopology: true,
   })
   .then(() => {
-    console.log("MongoDB connection is established successfully! 🎉");
+    console.log("connected to database 🖕");
   });
 /* -------------------------------------------- */
 
