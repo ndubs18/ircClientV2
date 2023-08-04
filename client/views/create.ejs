@@ -8,21 +8,18 @@
 </head>
 <body>
     <h1>IRC Client</h1>
-    <form action="/" method="post">
-        <h2>Login</h2>
-        <label for="username"></label>
-        <input required id="username" name="username" type="text" placeholder="email">
+    <form action="/auth/signup" method="post">
+        <h2>Create Account</h2>
+        <label for="email"></label>
+        <input required id="email" name="email" type="email" placeholder="email">
 
         <label for="password"></label>
         <input required id="password" name="password" type="password" placeholder="password">
+        <label for="password2"></label>
+        <input required id="password2" name="password2" type="password" placeholder="verify password">
 
         <label for="submit"></label>
-        <input id="submit" name="submit" type="submit">
-
-        <div id="accountLinks">
-            <a href="/create">Create Account</a>
-            <a href="/reset">Reset Password</a>
-        </div>
+        <input id="submit" name="submit" type="submit" value="Create Account">
     </form>
     
 </body>
