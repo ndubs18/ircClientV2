@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 //import bcrypt hashing module
-const { hash } = require("bcrypt");
+const { hash, compare } = require("bcrypt");
 
 const {createAccessToken, createRefreshToken, sendAccessToken, sendRefreshToken} = require('../../utils/token');
 
@@ -55,6 +55,7 @@ router.post("/login", async (req, res) => {
         message: "User doesn't exist! 😢",
         type: "error",
       });
+
     // 2. if user exists, check if password is correct
     const isMatch = await compare(password, user.password);
 
