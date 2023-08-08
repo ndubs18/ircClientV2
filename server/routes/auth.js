@@ -1,5 +1,9 @@
 const express = require("express");
 const router = express.Router();
+
+//used to verify refresh token
+const {verify} = require("jsonwebtoken");
+
 //import bcrypt hashing module
 const { hash, compare } = require("bcrypt");
 
@@ -85,4 +89,79 @@ router.post("/login", async (req, res) => {
     });
   }
 });
+
+//refresh access token
+router.post('/refreshtoken', async(req, res) => {
+
+  let id;
+
+  try {
+    const {refreshtoken} = req.cookies;
+    
+    if(!refreshtoken) {
+      res.status(500).json({
+        message: 'No refresh token 👎',
+        type: 'error'
+      })
+    }
+
+    //if we have a refresh token, verify it
+    // !TODO what does this verify function return? is it the payload?
+    // !TODO if it is the payload where does id come from?
+
+    try {
+      id = verify(refreshtoken, process.env.REFRESH_TOKEN_SECRED).id;
+    } catch(error) {
+      return res.status(500).json({
+        message: 'refresh token is invalid',
+        type: 'error'
+      });
+    }
+
+  if(!id) {
+    res.status(500).json({
+      message: 'refresh token is invalid',
+      type: 'error'
+    });
+  }
+
+  //if the refresh token is valid, check to see if the user exists
+    const user = User.findById(id);
+
+    if(!user) {
+      res.status(500).json({
+        message: 'user does not exist',
+        type: 'error'
+      })
+    }
+
+    if(user.refreshtoken !== refreshtoken) {
+      return res.status(500).json({
+        message: 'invalid refresh token',
+        type: 'error'
+      });
+    }
+    // if the refresh token is correct, create the new tokens
+    const accessToken = createAccessToken(user._id);
+    const refreshToken = createRefreshToken(user._id);
+    // update the refresh token in the database
+    user.refreshtoken = refreshToken;
+    // send the new tokes as response
+    sendRefreshToken(res, refreshToken);
+  }
+
+  catch {
+
+  }
+})
+
+//endpoint for when a user wants to logout
+router.post('/logout', (req, res) => {
+  res.clearCookie('refreshtoken');
+
+  return res.json({
+    message: 'logged out successfully',
+    type: 'success'
+  });
+})
   module.exports = router;
