@@ -1,14 +1,19 @@
 const http = require('http');
+
 //for reading .env environment variables
 const dotenv = require('dotenv').config();
+//for connecting to our mongo atlas database which also provides schema-based solution to model our data
 const mongoose = require('mongoose');
 const express = require('express');
 const app = express();
+
 //this will be used to expose the cookie header in the request
 const cookieParser = require('cookie-parser');
+
 // importing the routers (we export these modules in the respective files)
 const indexRouter = require("./routes/index");
-const authRouter = require("./routes/auth");
+const authRouter = require("./routes/auth.js");
+const createAccountRouter = require("./routes/create.js");
 
 //set the port
 const port = process.env.PORT || 3000;
@@ -26,8 +31,13 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 
 //setting the routers to the respective mounting paths
-app.use("/", indexRouter);
-app.use("/auth", authRouter);
+app.use('/', indexRouter);
+app.use('/create', createAccountRouter);
+app.use('/auth', authRouter);
+
+app.get('/reset', (req, res) => {
+  res.render('reset');
+});
 
 /* -------------------------------------------- */
 // connecting to the database
@@ -37,7 +47,7 @@ mongoose
     useUnifiedTopology: true,
   })
   .then(() => {
-    console.log("MongoDB connection is established successfully! 🎉");
+    console.log("connected to database 🖕");
   });
 /* -------------------------------------------- */
 

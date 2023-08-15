@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../../styles/index.css">
+    <title>ircClient</title>
+</head>
+<body>
+    <h1>IRC Client</h1>
+
+    <form id="resetForm" action="/auth/send-password-reset-email" method="post">
+        <h2>Reset Password</h2>
+        <label for="email"></label>
+        <input required id="email" type="email" name="email" placeholder="email">
+
+        <label for="submit"></label>
+        <input type="submit" name="submit" value="Send Email">
+    </form>
+
+</body>
+</html>
