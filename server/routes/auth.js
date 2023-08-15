@@ -242,6 +242,54 @@ router.post("/send-password-reset-email", async (req, res) => {
   }
 });
 
+// reset password
+router.post("/reset-password/:id/:token", async (req, res) => {
+  try {
+    // get the user details from the url
+    const { id, token } = req.params;
+    // get the new password the request body
+    const { newPassword } = req.body;
+    // find the user by id
+    const user = await User.findById(id);
+    // if the user doesn't exist, return error
+    if (!user)
+      return res.status(500).json({
+        message: "User doesn't exist! 😢",
+        type: "error",
+      });
+    // verify if the token is valid
+    const isValid = verify(token, user.password);
+    // if the password reset token is invalid, return error
+    if (!isValid)
+      return res.status(500).json({
+        message: "Invalid token! 😢",
+        type: "error",
+      });
+    // set the user's password to the new password
+    user.password = await hash(newPassword, 10);
+    // save the user
+    await user.save();
+    // send the email
+    const mailOptions = passwordResetConfirmationTemplate(user);
+    transporter.sendMail(mailOptions, (err, info) => {
+      if (err)
+        return res.status(500).json({
+          message: "Error sending email! 😢",
+          type: "error",
+        });
+      return res.json({
+        message: "Email sent! 📧",
+        type: "success",
+      });
+    });
+  } catch (error) {
+    res.status(500).json({
+      type: "error",
+      message: "Error sending email!",
+      error,
+    });
+  }
+});
 
 //endpoint for when a user wants to logout
 router.post('/logout', (req, res) => {
