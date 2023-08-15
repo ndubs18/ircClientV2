@@ -35,6 +35,9 @@ app.use('/', indexRouter);
 app.use('/create', createAccountRouter);
 app.use('/auth', authRouter);
 
+app.get('/reset', (req, res) => {
+  res.render('reset');
+});
 
 /* -------------------------------------------- */
 // connecting to the database

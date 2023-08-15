@@ -7,9 +7,24 @@ const {verify} = require("jsonwebtoken");
 //import bcrypt hashing module
 const { hash, compare } = require("bcrypt");
 
-const {createAccessToken, createRefreshToken, sendAccessToken, sendRefreshToken} = require('../../utils/token');
+const {
+  createAccessToken, 
+  createRefreshToken, 
+  sendAccessToken, 
+  sendRefreshToken, 
+  createPasswordResetToken} = require('../../utils/token');
+
+const {
+  transporter,
+  createPasswordResetUrl,
+  passwordResetTemplate,
+  passwordResetConfirmationTemplate,
+} = require("../../utils/email");
 
 const User = require('../../models/user.js')
+
+//middleware function for protected routes
+const { protected } = require("../../utils/protected");
 
 router.post("/signup", async (req, res) => {
   try {
@@ -91,7 +106,7 @@ router.post("/login", async (req, res) => {
 });
 
 //refresh access token
-router.post('/refreshtoken', async(req, res) => {
+router.post('/refreshtoken', async (req, res) => {
 
   let id;
 
@@ -106,9 +121,8 @@ router.post('/refreshtoken', async(req, res) => {
     }
 
     //if we have a refresh token, verify it
-    // !TODO what does this verify function return? is it the payload?
-    // !TODO if it is the payload where does id come from?
-
+    //verify function returns the payload as an object with the propery id
+    //which you can see in the function definitnion - parameter to sign() function.
     try {
       id = verify(refreshtoken, process.env.REFRESH_TOKEN_SECRED).id;
     } catch(error) {
@@ -148,12 +162,86 @@ router.post('/refreshtoken', async(req, res) => {
     user.refreshtoken = refreshToken;
     // send the new tokes as response
     sendRefreshToken(res, refreshToken);
+    return res.json({
+      message: 'refreshed successfully',
+      type: 'success',
+      accessToken
+    });
   }
 
-  catch {
-
+  catch(error) {
+    res.status(500).json({
+      message: 'There was an error when refreshing the token!',
+      type: 'error',
+      error
+    });
   }
 })
+
+// protected route
+router.get("/chat", protected, async (req, res) => {
+  try {
+    // if user exists in the request, send the data
+    if (req.user)
+      return res.json({
+        message: "You are logged in! 🤗",
+        type: "success",
+        user: req.user,
+      });
+    // if user doesn't exist, return error
+    return res.status(500).json({
+      message: "You are not logged in! 😢",
+      type: "error",
+    });
+  } catch (error) {
+    res.status(500).json({
+      type: "error",
+      message: "Error getting protected route!",
+      error,
+    });
+  }
+});
+
+// send password reset email
+router.post("/send-password-reset-email", async (req, res) => {
+  try {
+    // get the user from the request body
+    const { email } = req.body;
+    // find the user by email
+    const user = await User.findOne({ email });
+    // if the user doesn't exist, return error
+    if (!user)
+      return res.status(500).json({
+        message: "User doesn't exist! 😢",
+        type: "error",
+      });
+    // create a password reset token
+    const token = createPasswordResetToken({ ...user, createdAt: Date.now() });
+    // create the password reset url
+    const url = createPasswordResetUrl(user._id, token);
+    // send the email
+    const mailOptions = passwordResetTemplate(user, url);
+    transporter.sendMail(mailOptions, (err, info) => {
+      console.log(info);
+      if (err) 
+        return res.status(500).json({
+          message: "Error sending email! 😢",
+          type: "error",
+        });
+      return res.json({
+        message: "Password reset link has been sent to your email! 📧",
+        type: "success",
+      });
+    });
+  } catch (error) {
+    res.status(500).json({
+      type: "error",
+      message: "Error sending email!",
+      error,
+    });
+  }
+});
+
 
 //endpoint for when a user wants to logout
 router.post('/logout', (req, res) => {
